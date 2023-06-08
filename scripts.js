@@ -1,69 +1,65 @@
-const id = (x) => {
-    return document.getElementById(x);
-}
-let input = id('input');
-let addBtn = id('add_btn');
-let listContainer = id('item_list_container');
-let itemList = localStorage.itemList ? JSON.parse(localStorage.itemList) : [];
+// get from local storage
+let tasks = JSON.parse(localStorage.getItem('tasks')) || [];
 
+// render tasks
+function renderTasks() {
+  const taskList = document.getElementById('taskList');
+  taskList.innerHTML = '';
 
-const renderList = () => {
-    listContainer.innerHTML = ``;
-    for (let i = itemList.length - 1; i > 0; i--) {
-        listContainer.innerHTML += `
-            <div class="list-item">
-                <div class="item-name">
-                    ${itemList[i]}
-                </div>
-                <div class="item-actions">
-                    <button onclick="editItem(${i})">Edit</button>
-                    <button onclick="deleteItem(${i})">Delete</button>
-                </div>
-            </div>
-        `;
-    }
+  tasks.forEach((task, index) => {
+    const li = document.createElement('li');
+    li.innerHTML = `
+      <input type="checkbox" onchange="checkTask(${index})" ${task.checked ? 'checked' : ''}>
+      <span>${task.name}</span>
+      <button onclick="editTask(${index})">Edit</button>
+      <button onclick="deleteTask(${index})">Delete</button>
+    `;
+    taskList.appendChild(li);
+  });
 }
 
-const addEvent = () => {
-    let value = input.value;
-    if (value.length > 0) {
-        itemList.push(value);
-        input.value = "";
-    } else {
-        alert("Please specify a name for your task");
-    }
-    localStorage.itemList = JSON.stringify(itemList);
-    renderList();
+// Function to add a task
+function addTask() {
+  const taskInput = document.getElementById('taskInput');
+  const taskName = taskInput.value.trim();
+
+  if (taskName !== '') {
+    const newTask = {
+      name: taskName,
+      checked: false
+    };
+
+    tasks.push(newTask);
+    localStorage.setItem('tasks', JSON.stringify(tasks));
+
+    taskInput.value = '';
+    renderTasks();
+  }
 }
 
-const deleteItem = (index)=>{
-    let item = itemList[index];
-    if(item != undefined){
-        itemList.splice(index, 1);
-        localStorage.itemList = JSON.stringify(itemList);
-        renderList();
-    }else{
-        alert("Item has already been deleted.");
-    }
+// Function to edit a task
+function editTask(index) {
+  const newTaskName = prompt('Enter a new task name:');
+  if (newTaskName !== null && newTaskName.trim() !== '') {
+    tasks[index].name = newTaskName.trim();
+    localStorage.setItem('tasks', JSON.stringify(tasks));
+    renderTasks();
+  }
 }
 
-const editItem = (index)=>{
-    let item = itemList[index];
-    if(item != undefined){
-        let ask = prompt(`Change "${item}" to : `);
-        if(ask.length > 0){
-            itemList[index] = ask;
-            localStorage.itemList = JSON.stringify(itemList);
-            renderList();
-        }
-    }else{
-        alert("Item not available in list.");
-    }
+// Function to delete a task
+function deleteTask(index) {
+  tasks.splice(index, 1);
+  localStorage.setItem('tasks', JSON.stringify(tasks));
+  renderTasks();
 }
 
-addBtn.addEventListener("click", (e) => {
-    e.preventDefault();
-    addEvent();
-})
+//check/uncheck a task
+function checkTask(index) {
+  tasks[index].checked = !tasks[index].checked;
+  localStorage.setItem('tasks', JSON.stringify(tasks));
+  renderTasks();
+}
 
-renderList();
+//  rendering  tasks
+renderTasks();
